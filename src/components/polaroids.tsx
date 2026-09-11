@@ -1,9 +1,9 @@
 import { useEffect, useRef, type CSSProperties } from "react";
 
-const PHOTOS = [
-    { id: "p1", src: "/photos/IMG_7806.JPG", caption: "Venue: Karen" },
-    { id: "p2", src: "/photos/IMG_7828.JPG", caption: "Date: 19th September" },
-    { id: "p3", src: "/photos/IMG_7835.JPG", caption: "Theme: Burgundy" },
+export const PHOTOS = [
+    { id: "p1", src: "/photos/IMG_7806.JPG", caption: "Venue: Langata Botanical Gardens" },
+    { id: "p2", src: "/photos/IMG_7835.JPG", caption: "Date: 19th September" },
+    // { id: "p3", src: "/photos/IMG_7828.JPG", caption: "Theme: Burgundy" },
 ];
 
 export default function Polaroids() {
@@ -65,7 +65,7 @@ export default function Polaroids() {
                 >
                     <div className="polaroid-inner">
                         <div className="polaroid-image">
-                            <img src={p.src} alt="" />
+                            <img src={p.src} alt="" decoding="async"/>
                         </div>
                         <span className="polaroid-caption">{p.caption}</span>
                     </div>

@@ -8,11 +8,30 @@ export default function RsvpForm() {
     const [submitted, setSubmitted] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [hasPlusOne, setHasPlusOne] = useState(false);
+    const [plusOnes, setPlusOnes] = useState<string[]>([]);
+
+    const MAX_GUESTS = 3;
+
+    const addGuest = () => {
+        if (plusOnes.length < MAX_GUESTS) setPlusOnes([...plusOnes, ""]);
+    };
+
+    const updateGuest = (i: number, value: string) => {
+        setPlusOnes(plusOnes.map((g, idx) => (idx === i ? value : g)));
+    };
+
+    const removeGuest = (i: number) => {
+        setPlusOnes(plusOnes.filter((_, idx) => idx !== i));
+    };
 
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         const trimmedName = name.trim();
+        const cleanGuests = plusOnes.map((g) => g.trim()).filter(Boolean);
+
         if (!trimmedName || attending === null) return;
+        if (attending && plusOnes.some((g) => !g.trim())) return;   // blank field left open
 
         setError(null);
         setSubmitting(true);
@@ -20,7 +39,11 @@ export default function RsvpForm() {
             const res = await fetch("/api/rsvp", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name: trimmedName, attending }),
+                body: JSON.stringify({
+                    name: trimmedName,
+                    attending,
+                    plusOnes: attending ? cleanGuests : [],
+                }),
             });
 
             if (!res.ok) {
@@ -47,7 +70,10 @@ export default function RsvpForm() {
                     <span className="rsvp-success-icon">{attending ? "🎉" : "💌"}</span>
                     <p>
                         {attending
-                            ? `Yay, ${name}! We can't wait to celebrate with you.`
+                            ? plusOnes.length > 0
+                                ? `Yay, ${name}! We can't wait to celebrate with you and your ${plusOnes.length === 1 ? "guest" : `${plusOnes.length} guests`
+                                }.`
+                                : `Yay, ${name}! We can't wait to celebrate with you.`
                             : `Thanks for letting us know, ${name}. You'll be missed!`}
                     </p>
                     <button
@@ -88,19 +114,87 @@ export default function RsvpForm() {
                                 type="button"
                                 className={`rsvp-toggle-btn decline${attending === false ? " selected" : ""}`}
                                 aria-pressed={attending === false}
-                                onClick={() => setAttending(false)}
+                                onClick={() => {
+                                    setAttending(false);
+                                    setPlusOnes([]);
+                                }}
                             >
                                 Can&apos;t make it 💔
                             </button>
                         </div>
                     </div>
+                    {attending === true && (
+                        <div className="rsvp-field">
+                            <span className="rsvp-label">Bringing someone?</span>
+                            <div className="rsvp-toggle">
+                                <button
+                                    type="button"
+                                    className={`rsvp-toggle-btn${hasPlusOne ? " selected" : ""}`}
+                                    aria-pressed={hasPlusOne}
+                                    onClick={() => setHasPlusOne(true)}
+                                >
+                                    Yes, plus one 💞
+                                </button>
+                                <button
+                                    type="button"
+                                    className={`rsvp-toggle-btn decline${!hasPlusOne ? " selected" : ""}`}
+                                    aria-pressed={!hasPlusOne}
+                                    onClick={() => {
+                                        setHasPlusOne(false);
+                                        setPlusOnes([]);
+                                    }}
+                                >
+                                    Just me
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {attending === true && (
+                        <div className="rsvp-field">
+                            <span className="rsvp-label">
+                                Bringing anyone? ({plusOnes.length}/{MAX_GUESTS})
+                            </span>
+
+                            {plusOnes.map((guest, i) => (
+                                <div key={i} className="rsvp-guest-row">
+                                    <input
+                                        type="text"
+                                        className="rsvp-input"
+                                        placeholder={`Guest ${i + 1} full name`}
+                                        value={guest}
+                                        onChange={(e) => updateGuest(i, e.target.value)}
+                                    />
+                                    <button
+                                        type="button"
+                                        className="rsvp-guest-remove"
+                                        onClick={() => removeGuest(i)}
+                                        aria-label={`Remove guest ${i + 1}`}
+                                    >
+                                        ×
+                                    </button>
+                                </div>
+                            ))}
+
+                            {plusOnes.length < MAX_GUESTS && (
+                                <button type="button" className="rsvp-add-guest" onClick={addGuest}>
+                                    + Add a guest
+                                </button>
+                            )}
+                        </div>
+                    )}
 
                     {error && <p className="rsvp-error">{error}</p>}
 
                     <button
                         type="submit"
                         className="rsvp-submit"
-                        disabled={!name.trim() || attending === null || submitting}
+                        disabled={
+                            !name.trim() ||
+                            attending === null ||
+                            (attending === true && plusOnes.some((g) => !g.trim())) ||
+                            submitting
+                        }
                     >
                         {submitting ? "Sending…" : "Send RSVP"}
                     </button>

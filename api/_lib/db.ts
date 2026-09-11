@@ -7,15 +7,33 @@ export type Rsvp = {
     name: string;
     attending: boolean;
     created_at: string;
+    guest_of: number | null;
 };
 
-export async function insertRsvp(name: string, attending: boolean) {
-    await sql`INSERT INTO rsvps (name, attending) VALUES (${name}, ${attending})`;
+export async function insertRsvp(
+    name: string,
+    attending: boolean,
+    plusOnes: string[] = [],
+) {
+    const rows = (await sql`
+        INSERT INTO rsvps (name, attending)
+        VALUES (${name}, ${attending})
+        RETURNING id
+    `) as { id: number }[];
+
+    const hostId = rows[0].id;
+
+    for (const guest of plusOnes) {
+        await sql`
+            INSERT INTO rsvps (name, attending, guest_of)
+            VALUES (${guest}, true, ${hostId})
+        `;
+    }
 }
 
 export async function getAllRsvps(): Promise<Rsvp[]> {
     return (await sql`
-        SELECT id, name, attending, created_at
+        SELECT id, name, attending, created_at, guest_of
         FROM rsvps
         ORDER BY created_at DESC
     `) as Rsvp[];

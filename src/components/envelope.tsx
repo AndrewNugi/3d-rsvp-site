@@ -8,7 +8,7 @@ import Polaroids from "./polaroids";
 
 const W = 2;        // envelope width
 const H = 1.3;      // envelope height
-const D = 0.02;     // envelope thickness
+const D = 0.002;     // envelope thickness
 const FLAP_DROP = 0.72; // how far the flap tip hangs down
 
 const CARD_REST_Y = -0.80;   // where it settles, below the envelope
@@ -17,12 +17,13 @@ const CARD_PEAK_Y = 0.55;   // top of the arc
 const REST_ROT_X = -0.18;
 const REST_ROT_Y = -0.28;
 
+
 function Envelope() {
     const containerRef = useRef<HTMLDivElement>(null);
     const [revealed, setRevealed] = useState(false);
     const rsvpRef = useRef<HTMLElement>(null);
     const hasRevealed = useRef(false);
-    let revealTimer: ReturnType<typeof setTimeout> | null = null;
+    const revealTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
         const container = containerRef.current;
@@ -36,6 +37,13 @@ function Envelope() {
         // --- scene / camera / renderer ---
         const scene = new THREE.Scene();
         // scene.background = new THREE.Color(0xfdeef4);
+
+        let visible = true;
+        const io = new IntersectionObserver(
+            ([entry]) => { visible = entry.isIntersecting; },
+            { threshold: 0 },
+        );
+        io.observe(container);
 
         const bgCanvas = document.createElement("canvas");
         bgCanvas.width = 2;
@@ -156,12 +164,24 @@ function Envelope() {
         card.position.set(0, 0, 0);
         envelope.add(card);
 
+        const sealNormal = texLoader.load("/textures/seal_normal.jpg");
+        const sealRough = texLoader.load("/textures/seal_roughness.jpg");
+
+        [sealNormal, sealRough].forEach((t) => {
+            t.wrapS = t.wrapT = THREE.RepeatWrapping;
+            t.repeat.set(1, 1);   // ← not 3,2
+            t.anisotropy = renderer.capabilities.getMaxAnisotropy();
+        });
+
         // --- wax seal ---
         const sealGeo = new THREE.CylinderGeometry(0.13, 0.14, 0.005, 32);
         const sealMat = new THREE.MeshStandardMaterial({
             color: 0xc94f7c,        // deep rose wax
+            normalMap: sealNormal,
+            normalScale: new THREE.Vector2(0.9, 0.9),
+            roughnessMap: sealRough,
             roughness: 0.45,
-            metalness: 0.1,
+            metalness: 0.4,
             envMapIntensity: 1.2,
         });
         const seal = new THREE.Mesh(sealGeo, sealMat);
@@ -176,6 +196,9 @@ function Envelope() {
         const ringGeo = new THREE.TorusGeometry(0.1, 0.005, 12, 32);
         const ringMat = new THREE.MeshStandardMaterial({
             color: 0xa63a63,
+            normalMap: sealNormal,
+            normalScale: new THREE.Vector2(0.9, 0.9),
+            roughnessMap: sealRough,
             roughness: 0.5,
         });
         const ring = new THREE.Mesh(ringGeo, ringMat);
@@ -249,13 +272,13 @@ function Envelope() {
             target = target === 0 ? 1 : 0;
 
             if (target === 1 && !hasRevealed.current) {
-                revealTimer = setTimeout(() => {
+                revealTimer.current = setTimeout(() => {
                     hasRevealed.current = true;
                     setRevealed(true);
                 }, 3000);
-            } else if (target === 0 && revealTimer) {
-                clearTimeout(revealTimer);
-                revealTimer = null;
+            } else if (target === 0 && revealTimer.current) {
+                clearTimeout(revealTimer.current);
+                revealTimer.current = null;
             }
         };
         renderer.domElement.addEventListener("pointerdown", onPointerDown);
@@ -274,6 +297,7 @@ function Envelope() {
         let frameId = 0;
         const animate = () => {
             frameId = requestAnimationFrame(animate);
+            if (!visible) return;
             open += (target - open) * 0.08;              // ease toward target
             hinge.rotation.x = -open * Math.PI * 0.98;   // swing up toward viewer
             // envelope.scale.setScalar(Math.cos(t * 0.001) + 1.0);
@@ -335,7 +359,7 @@ function Envelope() {
             renderer.dispose();
             renderer.domElement.removeEventListener("pointerdown", onPointerDown);
             renderer.domElement.removeEventListener("pointerup", onPointerUp);
-            if (revealTimer) clearTimeout(revealTimer);
+            if (revealTimer.current) clearTimeout(revealTimer.current);
             wireMat.dispose();
             controls.dispose();
             bgTexture.dispose();
@@ -343,6 +367,9 @@ function Envelope() {
             floorMat.dispose();
             sealGeo.dispose();
             sealMat.dispose();
+            sealRough.dispose();
+            sealNormal.dispose();
+            io.disconnect();
             envTexture?.dispose();
             if (renderer.domElement.parentNode === container) {
                 container.removeChild(renderer.domElement);
@@ -358,9 +385,11 @@ function Envelope() {
 
     // scroll down once the form has mounted
     useEffect(() => {
-        if (revealed) {
-            rsvpRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
+        if (!revealed) return;
+        const id = setTimeout(() => {
+            window.scrollTo({ top: rsvpRef.current?.offsetTop ?? 0, behavior: "smooth" });
+        }, 100);
+        return () => clearTimeout(id);
     }, [revealed]);
 
     return (
@@ -387,6 +416,7 @@ function Envelope() {
             {revealed && (
                 <section
                     ref={rsvpRef}
+                    className={revealed ? "rsvp-section visible" : "rsvp-section"}
                     style={{
                         minHeight: "50vh",
                         display: "flex",

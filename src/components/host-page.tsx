@@ -5,6 +5,7 @@ type Rsvp = {
     name: string;
     attending: boolean;
     created_at: string;
+    guest_of: number | null;
 };
 
 export default function HostPage() {
@@ -68,7 +69,7 @@ export default function HostPage() {
     };
 
     const handleLogout = async () => {
-        await fetch("/api/host/logout", { method: "POST", credentials: "include" }).catch(() => {});
+        await fetch("/api/host/logout", { method: "POST", credentials: "include" }).catch(() => { });
         setAuthed(false);
         setRsvps([]);
     };
@@ -191,7 +192,14 @@ export default function HostPage() {
                     <tbody>
                         {filtered.map((r) => (
                             <tr key={r.id}>
-                                <td data-label="Name">{r.name}</td>
+                                <td data-label="Name">
+                                    {r.name}
+                                    {r.guest_of !== null && (
+                                        <span className="host-guest-tag">
+                                            plus one of {rsvps.find((x) => x.id === r.guest_of)?.name ?? "—"}
+                                        </span>
+                                    )}
+                                </td>
                                 <td data-label="Attending">
                                     <span className={`host-status${r.attending ? " yes" : " no"}`}>
                                         {r.attending ? "Yes" : "No"}
