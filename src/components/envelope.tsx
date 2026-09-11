@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
-import { createInviteCard, CARD_W, CARD_H } from "./invite-card";
+import { createInviteCard } from "./invite-card";
 import { useEffect, useRef, useState } from "react";
 import RsvpForm from "./rsvp-form";
 import Polaroids from "./polaroids";
@@ -272,7 +272,7 @@ function Envelope() {
 
         // --- loop ---
         let frameId = 0;
-        const animate = (t = 0) => {
+        const animate = () => {
             frameId = requestAnimationFrame(animate);
             open += (target - open) * 0.08;              // ease toward target
             hinge.rotation.x = -open * Math.PI * 0.98;   // swing up toward viewer
