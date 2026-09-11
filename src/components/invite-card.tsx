@@ -125,8 +125,8 @@ export function createInviteCard(renderer: THREE.WebGLRenderer) {
     let cancelled = false;
 
     Promise.all([
-        loadImage("/public/photos/IMG_7819.JPG"),
-        loadImage("/public/photos/IMG_1777.png"),
+        loadImage("/photos/IMG_7819.JPG"),
+        loadImage("/photos/IMG_1777.png"),
     ])
         .then(([background, cutout]) => {
             if (cancelled) return;
