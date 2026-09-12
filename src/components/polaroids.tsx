@@ -1,9 +1,9 @@
 import { useEffect, useRef, type CSSProperties } from "react";
 
 export const PHOTOS = [
-    { id: "p1", src: "/photos/IMG_7806.JPG", caption: "Venue: Langata Botanical Gardens" },
-    { id: "p2", src: "/photos/IMG_7835.JPG", caption: "Date: 19th September" },
-    // { id: "p3", src: "/photos/IMG_7828.JPG", caption: "Theme: Burgundy" },
+    { id: "p1", src: "/photos/IMG_7806.webp", caption: "Venue: Langata Botanical Gardens" },
+    { id: "p2", src: "/photos/IMG_7835.webp", caption: "Date: 19th September" },
+    // { id: "p3", src: "/photos/IMG_7828.webp", caption: "Theme: Burgundy" },
 ];
 
 export default function Polaroids() {

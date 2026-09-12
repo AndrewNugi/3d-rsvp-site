@@ -165,7 +165,7 @@ export function createInviteCard(renderer: THREE.WebGLRenderer) {
 
     Promise.all([
         loadFonts(),
-        loadImage("/photos/IMG_7819.JPG"),
+        loadImage("/photos/IMG_7819.webp"),
         loadImage("/photos/IMG_1777.png"),
     ])
         .then(([, background, cutout]) => {
