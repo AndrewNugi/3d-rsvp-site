@@ -68,7 +68,7 @@ function Envelope() {
         const { w, h } = getSize();
         const camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 100);
         const isMobile = window.innerWidth < 768;
-        camera.position.set(0, 0, isMobile ? 5.8 : 3.9);
+        camera.position.set(0, 0, isMobile ? 5.8 : 3.6);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));

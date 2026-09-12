@@ -93,7 +93,7 @@ function draw(ctx: CanvasRenderingContext2D, imgs: CardImages = {}) {
 
     // heading
     ctx.fillStyle = "#a63a63";
-    ctx.font = 'italic 500 52px "Playfair Display", Georgia, serif';
+    ctx.font = 'italic 900 52px "Playfair Display", Georgia, serif';
     ctx.fillText("You're Invited", textX, 168);
 
     // rule
@@ -106,7 +106,7 @@ function draw(ctx: CanvasRenderingContext2D, imgs: CardImages = {}) {
 
     // body copy
     ctx.fillStyle = "#5c3142";
-    ctx.font = '400 34px "Lora", Georgia, serif';
+    ctx.font = '900 34px "Lora", Georgia, serif';
     if ("letterSpacing" in ctx) ctx.letterSpacing = "0.4px";
 
     [
@@ -118,11 +118,11 @@ function draw(ctx: CanvasRenderingContext2D, imgs: CardImages = {}) {
 
     // the name, given weight
     ctx.fillStyle = "#8a2d52";
-    ctx.font = 'italic 500 42px "Playfair Display", Georgia, serif';
+    ctx.font = 'italic 900 42px "Playfair Display", Georgia, serif';
     ctx.fillText("Makena Kaminchia", textX, 420);
     
     ctx.fillStyle = "#5c3142";
-    ctx.font = '400 34px "Lora", Georgia, serif';
+    ctx.font = '900 34px "Lora", Georgia, serif';
     if ("letterSpacing" in ctx) ctx.letterSpacing = "0.4px";
 
     [
@@ -133,7 +133,7 @@ function draw(ctx: CanvasRenderingContext2D, imgs: CardImages = {}) {
 
     // the name, given weight
     ctx.fillStyle = "#8a2d52";
-    ctx.font = 'italic 500 20px "Playfair Display", Georgia, serif';
+    ctx.font = 'italic 900 20px "Playfair Display", Georgia, serif';
     ctx.fillText("with a FIRST CLASS HONOURS 🎓", textX, 520);
 
     if ("letterSpacing" in ctx) ctx.letterSpacing = "0px";
