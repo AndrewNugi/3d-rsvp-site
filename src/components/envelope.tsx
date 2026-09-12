@@ -4,7 +4,7 @@ import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
 import { createInviteCard } from "./invite-card";
 import { useEffect, useRef, useState } from "react";
 import RsvpForm from "./rsvp-form";
-import Polaroids from "./polaroids";
+import Polaroids, { PHOTOS } from "./polaroids";
 
 const W = 2;        // envelope width
 const H = 1.3;      // envelope height
@@ -17,6 +17,8 @@ const CARD_PEAK_Y = 0.55;   // top of the arc
 const REST_ROT_X = -0.18;
 const REST_ROT_Y = -0.28;
 
+const isMobile = window.innerWidth < 768;
+
 
 function Envelope() {
     const containerRef = useRef<HTMLDivElement>(null);
@@ -24,6 +26,7 @@ function Envelope() {
     const rsvpRef = useRef<HTMLElement>(null);
     const hasRevealed = useRef(false);
     const revealTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const [opened, setOpened] = useState(false);
 
     useEffect(() => {
         const container = containerRef.current;
@@ -64,7 +67,8 @@ function Envelope() {
 
         const { w, h } = getSize();
         const camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 100);
-        camera.position.set(0, 0, 4.2);
+        const isMobile = window.innerWidth < 768;
+        camera.position.set(0, 0, isMobile ? 5.8 : 3.9);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -270,8 +274,14 @@ function Envelope() {
             if (moved >= 5) return;   // a drag, not a click
 
             target = target === 0 ? 1 : 0;
+            setOpened(true);
 
             if (target === 1 && !hasRevealed.current) {
+                PHOTOS.forEach((p) => {
+                    const img = new Image();
+                    img.src = p.src;
+                    img.decode?.().catch(() => { });
+                });
                 revealTimer.current = setTimeout(() => {
                     hasRevealed.current = true;
                     setRevealed(true);
@@ -404,13 +414,30 @@ function Envelope() {
                 }}
             >
                 <div
-                    ref={containerRef}
                     style={{
-                        width: "min(900px, 80vw)",
+                        position: "relative",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
                         height: "100%",
-                        overflow: "hidden",
+                        width: "100%",
                     }}
-                />
+                >
+                    <div
+                        ref={containerRef}
+                        style={{
+                            width: isMobile ? "min(980px, 90vw)" : "min(900px, 80vw)",
+                            flex: 1,
+                            minWidth: 0,
+                            minHeight: 0,
+                            overflow: "hidden",
+                        }}
+                    />
+
+                    <p className={`open-hint${opened ? " hidden" : ""}`}>
+                        Click the envelope to open
+                    </p>
+                </div>
             </section>
 
             {revealed && (

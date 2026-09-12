@@ -5,12 +5,25 @@ type CardImages = {
     cutout?: HTMLImageElement;
 };
 
-
+const SS = 2;                  // supersample factor
+const DESIGN_W = 1024;
+const DESIGN_H = 662;
+const PX_W = DESIGN_W * SS;
+const PX_H = DESIGN_H * SS;
 export const CARD_W = 1.7;
 export const CARD_H = 1.1;
 
-const PX_W = 1024;
-const PX_H = 662;   // matches CARD_W / CARD_H
+// const PX_W = 1024;
+// const PX_H = 662;   // matches CARD_W / CARD_H
+
+async function loadFonts() {
+    if (!document.fonts) return;
+    await Promise.all([
+        document.fonts.load('italic 500 52px "Playfair Display"'),
+        document.fonts.load('500 34px "Lora"'),
+        document.fonts.load('400 30px "Lora"'),
+    ]);
+}
 
 function loadImage(src: string): Promise<HTMLImageElement> {
     return new Promise((resolve, reject) => {
@@ -35,8 +48,11 @@ function drawCover(
 }
 
 function draw(ctx: CanvasRenderingContext2D, imgs: CardImages = {}) {
-    const W = PX_W;
-    const H = PX_H;
+    const W = DESIGN_W;
+    const H = DESIGN_H;
+
+    ctx.setTransform(SS, 0, 0, SS, 0, 0);
+    ctx.clearRect(0, 0, W, H);
 
     ctx.clearRect(0, 0, W, H);
 
@@ -45,7 +61,7 @@ function draw(ctx: CanvasRenderingContext2D, imgs: CardImages = {}) {
     ctx.fillRect(0, 0, W, H);
 
     // --- photo panel, right side ---
-    const panelX = W * 0.50;
+    const panelX = W * 0.56;
     const panelW = W - panelX;
 
     if (imgs.background) {
@@ -56,11 +72,11 @@ function draw(ctx: CanvasRenderingContext2D, imgs: CardImages = {}) {
     }
 
     // soft fade from the paper into the photo
-    const fade = ctx.createLinearGradient(panelX, 0, panelX + 180, 0);
+    const fade = ctx.createLinearGradient(panelX, 0, panelX + 200, 0);
     fade.addColorStop(0, "rgba(255,252,253,1)");
     fade.addColorStop(1, "rgba(255,252,253,0)");
     ctx.fillStyle = fade;
-    ctx.fillRect(panelX, 0, 180, H);
+    ctx.fillRect(panelX, 0, 200, H);
 
     // --- cutout, sitting in front ---
     if (imgs.cutout) {
@@ -70,34 +86,57 @@ function draw(ctx: CanvasRenderingContext2D, imgs: CardImages = {}) {
     }
 
     // --- text, left side ---
-    const textX = W * 0.06;
+    // --- text, left side ---
+    const textX = W * 0.07;
 
     ctx.textAlign = "left";
-    ctx.fillStyle = "#a63a63";
-    ctx.font = "italic 34px Georgia, serif";
-    ctx.fillText("You're Invited", textX, 150);
 
+    // heading
+    ctx.fillStyle = "#a63a63";
+    ctx.font = 'italic 500 52px "Playfair Display", Georgia, serif';
+    ctx.fillText("You're Invited", textX, 168);
+
+    // rule
     ctx.strokeStyle = "#e8b8cc";
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(textX, 180);
-    ctx.lineTo(textX + 200, 180);
+    ctx.moveTo(textX, 200);
+    ctx.lineTo(textX + 240, 200);
     ctx.stroke();
 
-    ctx.fillStyle = "#6b3a4e";
-    ctx.font = "26px Georgia, serif";
+    // body copy
+    ctx.fillStyle = "#5c3142";
+    ctx.font = '400 34px "Lora", Georgia, serif';
+    if ("letterSpacing" in ctx) ctx.letterSpacing = "0.4px";
+
     [
-        "We would love for you to come",
-        "and join us in celebrating",
-        "Makena's Graduation",
+        "We would love for you to",
+        "join us in celebrating",
     ].forEach((line, i) => {
-        ctx.fillText(line, textX, 260 + i * 40);
+        ctx.fillText(line, textX, 290 + i * 50);
     });
 
-    // border last, so it sits over everything
-    ctx.strokeStyle = "#d98cab";
-    ctx.lineWidth = 3;
-    ctx.strokeRect(22, 22, W - 44, H - 44);
+    // the name, given weight
+    ctx.fillStyle = "#8a2d52";
+    ctx.font = 'italic 500 42px "Playfair Display", Georgia, serif';
+    ctx.fillText("Makena Kaminchia", textX, 420);
+    
+    ctx.fillStyle = "#5c3142";
+    ctx.font = '400 34px "Lora", Georgia, serif';
+    if ("letterSpacing" in ctx) ctx.letterSpacing = "0.4px";
+
+    [
+        "for completing BA-IS",
+    ].forEach((line, i) => {
+        ctx.fillText(line, textX, 480 + i * 50);
+    });
+
+    // the name, given weight
+    ctx.fillStyle = "#8a2d52";
+    ctx.font = 'italic 500 20px "Playfair Display", Georgia, serif';
+    ctx.fillText("with a FIRST CLASS HONOURS 🎓", textX, 520);
+
+    if ("letterSpacing" in ctx) ctx.letterSpacing = "0px";
 }
 
 export function createInviteCard(renderer: THREE.WebGLRenderer) {
@@ -125,15 +164,16 @@ export function createInviteCard(renderer: THREE.WebGLRenderer) {
     let cancelled = false;
 
     Promise.all([
+        loadFonts(),
         loadImage("/photos/IMG_7819.JPG"),
         loadImage("/photos/IMG_1777.png"),
     ])
-        .then(([background, cutout]) => {
+        .then(([, background, cutout]) => {
             if (cancelled) return;
             draw(canvas.getContext("2d")!, { background, cutout });
             texture.needsUpdate = true;
         })
-        .catch((err) => console.error("Invite card images:", err));
+        .catch((err) => console.error("Invite card:", err));
 
     return {
         mesh,

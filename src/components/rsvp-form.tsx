@@ -11,6 +11,8 @@ export default function RsvpForm() {
     const [hasPlusOne, setHasPlusOne] = useState(false);
     const [plusOnes, setPlusOnes] = useState<string[]>([]);
 
+    const PLUS_ONES_ENABLED = false;
+
     const MAX_GUESTS = 3;
 
     const addGuest = () => {
@@ -31,7 +33,7 @@ export default function RsvpForm() {
         const cleanGuests = plusOnes.map((g) => g.trim()).filter(Boolean);
 
         if (!trimmedName || attending === null) return;
-        if (attending && plusOnes.some((g) => !g.trim())) return;   // blank field left open
+        if (PLUS_ONES_ENABLED && attending && plusOnes.some((g) => !g.trim())) return;   // blank field left open
 
         setError(null);
         setSubmitting(true);
@@ -42,7 +44,7 @@ export default function RsvpForm() {
                 body: JSON.stringify({
                     name: trimmedName,
                     attending,
-                    plusOnes: attending ? cleanGuests : [],
+                    plusOnes: PLUS_ONES_ENABLED && attending ? cleanGuests : [],
                 }),
             });
 
@@ -123,7 +125,7 @@ export default function RsvpForm() {
                             </button>
                         </div>
                     </div>
-                    {attending === true && (
+                    {PLUS_ONES_ENABLED && attending === true && (
                         <div className="rsvp-field">
                             <span className="rsvp-label">Bringing someone?</span>
                             <div className="rsvp-toggle">
@@ -150,7 +152,7 @@ export default function RsvpForm() {
                         </div>
                     )}
 
-                    {attending === true && (
+                    {PLUS_ONES_ENABLED && attending === true && (
                         <div className="rsvp-field">
                             <span className="rsvp-label">
                                 Bringing anyone? ({plusOnes.length}/{MAX_GUESTS})
@@ -192,7 +194,7 @@ export default function RsvpForm() {
                         disabled={
                             !name.trim() ||
                             attending === null ||
-                            (attending === true && plusOnes.some((g) => !g.trim())) ||
+                            (PLUS_ONES_ENABLED && attending === true && plusOnes.some((g) => !g.trim())) ||
                             submitting
                         }
                     >
